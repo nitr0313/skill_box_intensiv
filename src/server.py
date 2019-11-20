@@ -11,8 +11,8 @@ messages = [
 ]
 
 password_storage = {
-    'John': '123',
-    'Marry': '321',
+    'john': '123',
+    'marry': '321',
 }
 
 
@@ -172,6 +172,22 @@ def send_method():
         {'username': username, 'time': time.time(), 'text': text})
 
     return {'ok': True}
+
+
+@app.route("/user_messages", methods="POST")
+def user_messages_method():
+    """
+    JSON {"username":str}
+    Принимает ник и возвращает все сообщения этого пользователя
+    :return: {'messages':[
+    {'username': str, 'time': str, 'text': str},
+    ...
+    ]}
+    """
+    username = request.json['username'].lower()
+    filtred_messages = [x for x in messages if x['username'] == username]
+
+    return {'messages': filtred_messages}
 
 
 @app.route("/messages")
