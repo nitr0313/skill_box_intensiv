@@ -148,7 +148,10 @@ def send_method():
 
     # Если ник первый раз встречается то добавляем его сразу
     if username not in password_storage:
-        password_storage[username] = password
+        return {
+            'ok': False,
+            'message': 'Сначала пройдите регистрацию или авторизуйтесь'
+        }
 
     if not isinstance(username, str) or len(username) == 0:
         return {
