@@ -1,7 +1,7 @@
 from flask import Flask, request
 import time
 import datetime
-from .utils import password_validation
+from utils import password_validation
 
 app = Flask(__name__)
 messages = [
@@ -162,7 +162,7 @@ def send_method():
     if not isinstance(text, str) or len(text) == 0:
         return {
             'ok': False,
-            'message': 'bad text',
+            'message': 'Пустой текст',
         }
     # Если ник не соответствует паролю то фиг!
     if password_storage[username] != password:
@@ -177,7 +177,7 @@ def send_method():
     return {'ok': True}
 
 
-@app.route("/user_messages", methods="POST")
+@app.route("/user_messages", methods={"POST"})
 def user_messages_method():
     """
     JSON {"username":str}

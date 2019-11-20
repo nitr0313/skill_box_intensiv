@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime
 
 # response = requests.get('http://127.0.0.1:5000/messages')
 auth = False
@@ -90,6 +91,23 @@ if auth == True:
             print(
                 f'За время существования сервера отправлено сообщений: {jsn["messages_count"]} !')
             continue
+
+        if text.startswith("/user"):
+            usr = text.split(" ")[1]
+            response = requests.post(
+                'http://127.0.0.1:5000/user_messages',
+                json={
+                    'username':usr
+                })
+            if response.status_code == 200:
+                messages = response.json()["messages"]
+                for m in messages:
+                    print(str(datetime.fromtimestamp(m['time'])))
+                    print(m['text'])
+            else:
+                print(f"Server: {response.status_code}")
+            continue
+
 
         response = requests.post(
             'http://127.0.0.1:5000/send',
