@@ -1,7 +1,7 @@
 from flask import Flask, request
 import time
 import datetime
-from utils import password_validation
+from .utils import password_validation
 
 app = Flask(__name__)
 messages = [
@@ -34,7 +34,7 @@ def hello2_method():
 
 @app.route("/server_time")
 def server_time_method():
-    date = datetime.datetime.now()
+    date = datetime.datetime.now().strftime('%Y.%m.%d %H.%M.%S')
     return {
         'date': date,
     }
@@ -75,8 +75,6 @@ def change_password_method():
         }
 
     return 0
-
-
 
 
 @app.route("/register", methods={'POST'})
