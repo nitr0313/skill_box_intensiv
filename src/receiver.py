@@ -4,7 +4,7 @@ from datetime import datetime
 
 # response = requests.get('http://127.0.0.1:5000/messages')
 
-username = input("Введите ваш ник")
+username = input("Введите ваш ник >> ")
 last_received = 0
 tab = "\t\t"
 while True:
@@ -17,7 +17,7 @@ while True:
         messages = response.json()['messages']
         for mes in messages:
             print(
-                f"{datetime.fromtimestamp(mes['time'])}\t{mes['username'] if mes['username'] != username else 'Вы'}")
+                f"{datetime.fromtimestamp(mes['time'])}\t{mes['username'].capitalize() if mes['username'] != username else 'Вы'}")
             print(
                 f"{tab if mes['username'] == username else ''} {mes['text']} ")
             print()

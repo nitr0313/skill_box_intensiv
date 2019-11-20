@@ -1,11 +1,12 @@
 from flask import Flask, request
 import time
 import datetime
+from utils import password_validation
 
 app = Flask(__name__)
 messages = [
-    {'username': 'John', 'time': time.time(), 'text': 'Hello, MErry!'},
-    {'username': 'Merry', 'time': time.time(), 'text': 'Hello, John!'},
+    {'username': 'john', 'time': time.time(), 'text': 'Hello, MErry!'},
+    {'username': 'merry', 'time': time.time(), 'text': 'Hello, John!'},
 
 ]
 
@@ -40,60 +41,59 @@ def server_time_method():
 
 
 @app.route("/change_password", methods={'POST'})
-def change_password():
+def change_password_method():
     """
     JSON {"username":str,"password":str,"new_password":str}
     username, password, new_password - строки
     :return: {'ok':bool}
     """
-    username = request.json['username']
+    username = request.json['username'].lower()
     password = request.json['password']
     new_password = request.json['new_password']
 
     if not isinstance(username, str) or len(username) == 0 or username not in password_storage:
         return {
             'ok': False,
-            'error_message': 'Введите действующий ник для смены пароля'
+            'message': 'Введите действующий ник для смены пароля'
         }
 
     if not isinstance(password, str) or len(password) == 0 or password_storage[username] != password:
         return {
             'ok': False,
-            'error_message': 'Введите текущий пароль'
+            'message': 'Введите текущий пароль'
         }
 
-    if not isinstance(new_password, str) or len(new_password) == 0 or password_storage[username] == new_password:
+    pasw_valid = password_validation(new_password)
+
+    if pasw_valid[0]:
+        password_storage[username] = new_password
+        return {'ok': True, 'message':f'Ваш новый пароль: {new_password}'}
+    else:
         return {
             'ok': False,
-            'error_message': 'Введите НОВЫЙ пароль'
+            'message': pasw_valid[1]
         }
 
-    password_storage[username] = new_password
-    return {'ok': True, 'message':f'Ваш новый пароль: {new_password}'}
+    return 0
 
 
-def password_validation(pasw):
-    if len(pasw) < 6:
-        return False, 'Пароль должен быть длиннее 5 символов'
-    if pasw.isdigit() or pasw.isalpha():
-        return False, 'В пароле должны быть и буквы и цифры'
-    return True, 'Ok'
 
 
 @app.route("/register", methods={'POST'})
-def user_register():
+def user_register_method():
     """
     JSON {"username":str,"password":str}
     username, password - строки
     :return: {'ok':bool}
     """
-    username = request.json['username']
+    print('register')
+    username = request.json['username'].lower()
     password = request.json['password']
 
     if not isinstance(username, str) or len(username) == 0 or username in password_storage:
         return {
             'ok': False,
-            'error_message': 'Введите уникальный ник для регистрации'
+            'message': 'Введите уникальный ник для регистрации'
         }
 
     pasw_valid = password_validation(password)
@@ -104,8 +104,36 @@ def user_register():
     else:
         return {
             'ok': False,
-            'error_message': pasw_valid[1]
+            'message': pasw_valid[1]
         }
+    return 0
+
+
+@app.route("/auth", methods={'POST'})
+def user_auth_method():
+    """
+    JSON {"username":str,"password":str}
+    username, password - строки
+    :return: {'ok':bool}
+    """
+    username = request.json['username'].lower()
+    password = request.json['password']
+
+    if not isinstance(username, str) or len(username) == 0 or username not in password_storage:
+        return {
+            'ok': False,
+            # Нет такого логина
+            'message': 'Такого сочетания логина пароля не найдено'
+        }
+
+    if password_storage[username] == password:
+        return {'ok': True}
+    else:
+        return {
+            'ok': False,
+            'message': 'Такого сочетания логина пароля не найдено'
+        }
+
 
 
 @app.route("/send", methods={'POST'})
@@ -116,7 +144,7 @@ def send_method():
     :return: {'ok':bool}
     """
     # print(request)
-    username = request.json['username']
+    username = request.json['username'].lower()
     password = request.json['password']
     text = request.json['text']
 
@@ -127,19 +155,19 @@ def send_method():
     if not isinstance(username, str) or len(username) == 0:
         return {
             'ok': False,
-            'error_message': 'bad username'
+            'message': 'bad username'
         }
 
     if not isinstance(text, str) or len(text) == 0:
         return {
             'ok': False,
-            'error_message': 'bad text',
+            'message': 'bad text',
         }
     # Если ник не соответствует паролю то фиг!
     if password_storage[username] != password:
         return {
             'ok': False,
-            'error_message': 'Не верный пароль, смените пользователя или пароль!'
+            'message': 'Не верный пароль, смените пользователя или пароль!'
         }
 
     messages.append(
