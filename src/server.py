@@ -2,6 +2,7 @@ from flask import Flask, request
 import time
 import datetime
 from utils import password_validation
+# import utils
 
 app = Flask(__name__)
 messages = [
@@ -14,7 +15,6 @@ password_storage = {
     'john': '123',
     'marry': '321',
 }
-
 
 @app.route("/")
 def hello_method():
@@ -67,7 +67,7 @@ def change_password_method():
 
     if pasw_valid[0]:
         password_storage[username] = new_password
-        return {'ok': True, 'message':f'Ваш новый пароль: {new_password}'}
+        return {'ok': True, 'message': f'Ваш новый пароль: {new_password}'}
     else:
         return {
             'ok': False,
@@ -131,7 +131,6 @@ def user_auth_method():
             'ok': False,
             'message': 'Такого сочетания логина пароля не найдено'
         }
-
 
 
 @app.route("/send", methods={'POST'})
@@ -203,6 +202,7 @@ def messages_method():
     ...
     ]}
     """
+    # TODO Сделать выдачу сообщений только авторизованным рессиверам)
     after = float(request.args['after'])
     filtred_messages = [x for x in messages if x['time'] > after]
 
