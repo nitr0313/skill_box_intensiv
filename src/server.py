@@ -16,6 +16,7 @@ password_storage = {
     'marry': '321',
 }
 
+
 @app.route("/")
 def hello_method():
     return "<h1>Hello, world</h1>"
@@ -209,4 +210,5 @@ def messages_method():
     return {'messages': filtred_messages}
 
 
-app.run()
+if __name__ == '__main__':
+    app.run()
