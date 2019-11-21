@@ -2,18 +2,26 @@ from flask import Flask, request
 import time
 import datetime
 from utils import password_validation
+import uuid
 # import utils
 
 app = Flask(__name__)
 messages = [
-    {'username': 'john', 'time': time.time(), 'text': 'Hello, MErry!'},
-    {'username': 'merry', 'time': time.time(), 'text': 'Hello, John!'},
+    {'username': 'john', 'time': time.time(), 'text': 'Hello, MErry!', 'destination': 'all'},
+    {'username': 'merry', 'time': time.time(), 'text': 'Hello, John!', 'destination': 'all'},
+    {'username': 'nitr0', 'time': time.time(), 'text': 'Hello, John!', 'destination': 'all'},
 
 ]
+
+# Пока тут будут храниться ключи пользователей которые прошли аунтификацию 'username' : 'secret_key'
+key_stor = {
+
+}
 
 password_storage = {
     'john': '123',
     'marry': '321',
+    'nitr0': '0147',
 }
 
 
@@ -126,12 +134,37 @@ def user_auth_method():
         }
 
     if password_storage[username] == password:
-        return {'ok': True}
+        secret_key = key_generator()
+        key_stor[username] = secret_key
+        return {'ok': True, 'secret_key':secret_key}
     else:
         return {
             'ok': False,
             'message': 'Такого сочетания логина пароля не найдено'
         }
+
+
+def key_generator():
+    return uuid.uuid4().hex
+
+
+@app.route("/users_list", methods = {'GET','POST'})
+def users_list():
+    """
+    JSON {"key":str}
+    username, password, text - строки
+    :return: {'users':list}
+    """
+    key = request.json['key']
+    username = get_by_value(key, key_stor)
+    if not username:
+        return {
+            'ok': False,
+            'message': 'Сначала пройдите регистрацию или авторизуйтесь'
+        }
+
+    ul = [x for x in key_stor.keys()]
+    return {'users_online': ul}
 
 
 @app.route("/send", methods={'POST'})
@@ -141,13 +174,13 @@ def send_method():
     username, password, text - строки
     :return: {'ok':bool}
     """
-    # print(request)
-    username = request.json['username'].lower()
-    password = request.json['password']
-    text = request.json['text']
 
-    # Если ник первый раз встречается то добавляем его сразу
-    if username not in password_storage:
+    key = request.json['key']
+    text = request.json['text']
+    destination = request.json['destination']
+    print(key, text)
+    username = get_by_value(key, key_stor)
+    if not username:
         return {
             'ok': False,
             'message': 'Сначала пройдите регистрацию или авторизуйтесь'
@@ -164,15 +197,9 @@ def send_method():
             'ok': False,
             'message': 'Пустой текст',
         }
-    # Если ник не соответствует паролю то фиг!
-    if password_storage[username] != password:
-        return {
-            'ok': False,
-            'message': 'Не верный пароль, смените пользователя или пароль!'
-        }
 
     messages.append(
-        {'username': username, 'time': time.time(), 'text': text})
+        {'username': username, 'time': time.time(), 'text': text, "destination":"all"})
 
     return {'ok': True}
 
@@ -204,10 +231,23 @@ def messages_method():
     ]}
     """
     # TODO Сделать выдачу сообщений только авторизованным рессиверам)
-    after = float(request.args['after'])
-    filtred_messages = [x for x in messages if x['time'] > after]
 
-    return {'messages': filtred_messages}
+    after = float(request.args['after'])
+    key = request.args['key']
+    username = get_by_value(key, key_stor)
+    if not username:
+        return {'None': "Key not found, auth again please"}
+    filtred_messages = [x for x in messages if (x['time'] > after) and x['destination'] in ['all', username]]
+
+    return {'messages': filtred_messages, 'online_users':[x for x in key_stor.keys()]}
+
+
+def get_by_value(value, dt):
+    for key, val in dt.items():
+        if val == value:
+            return key
+    return False
+
 
 
 if __name__ == '__main__':

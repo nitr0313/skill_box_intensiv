@@ -7,6 +7,7 @@ username = ""
 password = ""
 print("Выберите нужную команду:")
 
+
 def respons_pars(resp):
     if response.status_code == 200:
         jsn = response.json()
@@ -44,7 +45,7 @@ while True:
             json={'username': username, 'password': password}
         )
         if respons_pars(response):
-            auth=True
+            auth = True
             break
     elif ans == '2':
         # авторизация
@@ -53,7 +54,7 @@ while True:
             json={'username': username, 'password': password}
         )
         if respons_pars(response):
-            auth=True
+            auth = True
             break
     elif ans == '3':
         new_password = input("Введите ваш НОВЫЙ пароль >> ")
@@ -64,10 +65,10 @@ while True:
                 'username': username,
                 'password': password,
                 'new_password': new_password,
-                }
+            }
         )
         if respons_pars(response):
-            auth=True
+            auth = True
             password = new_password
             break
 
@@ -99,7 +100,7 @@ if auth == True:
             response = requests.post(
                 'http://127.0.0.1:5000/user_messages',
                 json={
-                    'username':usr
+                    'username': usr
                 })
             if response.status_code == 200:
                 messages = response.json()["messages"]
@@ -109,7 +110,6 @@ if auth == True:
             else:
                 print(f"Server: {response.status_code}")
             continue
-
 
         response = requests.post(
             'http://127.0.0.1:5000/send',
