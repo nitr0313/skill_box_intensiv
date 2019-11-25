@@ -16,6 +16,7 @@ class MessengerApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.loginButton.clicked.connect(self.login)
         self.logoutButton.clicked.connect(self.login)
         thread = threading.Thread(target=self.receive)
+        thread.daemon = True
         thread.start()
 
     key = "_"

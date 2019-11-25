@@ -1,11 +1,62 @@
 from flask import Flask, request
+# from peewee import *
+from flask_peewee.db import *
 import time
 import datetime
-from utils import password_validation
+# from utils import password_validation
 import uuid
+# from model import User, Message
 # import utils
 
+
+
+def password_validation(pasw):
+    """
+    passw - строка
+    Проверяется на длинну и наличие цифр и букв
+    :return: {'ok':bool}
+    """
+    if len(pasw) < 6:
+        return False, 'Пароль должен быть длиннее 5 символов'
+    if pasw.isdigit() or pasw.isalpha():
+        return False, 'В пароле должны быть и буквы и цифры'
+    return True, 'Ok'
+
+
 app = Flask(__name__)
+DEBUG = True
+SECRET_KEY = 'ssshhhh'
+# db = Database(app)
+
+DATABASE = {
+    'name': 'chat.db',
+    'engine': 'peewee.SqliteDatabase',
+}
+
+class User(Model):
+    name = CharField()
+    password_hash = CharField(max_length=15, index=True)
+    is_staff = BooleanField(default=False)
+
+    class Meta:
+        database = DATABASE  # модель будет использовать базу данных 'people.db'
+
+
+# import bcrypt
+# User.password_hash = bcrypt.hashpw('15072003'.encode('utf-8'), bcrypt.gensalt())
+# bcrypt.checkpw('15072003'.encode('utf-8'), b'$2b$12$hBaNrCLZpZrNGQMb9cSjpuonpYyC0w24hcLqbb.3kg.NC.jqOr5si')
+
+class Message(Model):
+    username = ForeignKeyField(User, related_name='users', index=True)
+    time = DateTimeField(default=datetime.datetime.now)
+    body = TextField(index=False)
+    destination = CharField(index=True) #  Может принимать направление ALL - для всех или имя пользователя
+
+    class Meta:
+        database = DATABASE['name']
+        ordering = ('time',)
+
+
 messages = [
     {'username': 'john', 'time': time.time(), 'text': 'Hello, MErry!', 'destination': 'all'},
     {'username': 'merry', 'time': time.time(), 'text': 'Hello, John!', 'destination': 'all'},
@@ -33,6 +84,7 @@ def hello_method():
 @app.route("/status")
 def hello2_method():
     date = datetime.datetime.now()
+    # messages_count = Message.
     return {
         'status': True,
         'date': date,
@@ -83,7 +135,6 @@ def change_password_method():
             'message': pasw_valid[1]
         }
 
-    return 0
 
 
 @app.route("/register", methods={'POST'})
@@ -113,7 +164,7 @@ def user_register_method():
             'ok': False,
             'message': pasw_valid[1]
         }
-    return 0
+
 
 
 @app.route("/auth", methods={'POST'})
@@ -248,7 +299,5 @@ def get_by_value(value, dt):
             return key
     return False
 
-
-
-if __name__ == '__main__':
+if __name__=='__main__':
     app.run()
